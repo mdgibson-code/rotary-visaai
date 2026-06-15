@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rotary D5050 — Exchange Student Visa Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C8973A;
+    --gold-light: #F5E6C8;
+    --navy: #1A2744;
+    --navy-mid: #2C3E6B;
+    --bg: #F8F6F1;
+    --surface: #FFFFFF;
+    --border: rgba(26,39,68,0.12);
+    --text: #1A2744;
+    --text-muted: #6B7A9A;
+    --text-hint: #A0AABF;
+    --user-bg: #1A2744;
+    --user-text: #F5E6C8;
+    --advisor-bg: #FFFFFF;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 24px 16px 40px;
+  }
+
+  .page-header {
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .rotary-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .rotary-badge svg { width: 28px; height: 28px; }
+
+  .header-text h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--navy);
+    line-height: 1.2;
+  }
+
+  .header-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .chat-card {
+    width: 100%;
+    max-width: 680px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 580px;
+    box-shadow: 0 2px 16px rgba(26,39,68,0.08);
+  }
+
+  .chat-topbar {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--navy);
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #4ADE80;
+    flex-shrink: 0;
+  }
+
+  .chat-topbar-text { flex: 1; }
+  .chat-topbar-text .title { font-size: 13px; font-weight: 500; color: #F5E6C8; }
+  .chat-topbar-text .sub { font-size: 11px; color: rgba(245,230,200,0.55); margin-top: 1px; }
+
+  .flag-row { display: flex; gap: 4px; }
+  .flag { font-size: 18px; }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--bg);
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .msg { display: flex; flex-direction: column; gap: 4px; max-width: 84%; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.assistant { align-self: flex-start; align-items: flex-start; }
+
+  .msg-label { font-size: 10px; color: var(--text-hint); letter-spacing: 0.04em; text-transform: uppercase; padding: 0 4px; }
+
+  .bubble {
+    padding: 11px 15px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+
+  .msg.user .bubble {
+    background: var(--user-bg);
+    color: var(--user-text);
+    border-bottom-right-radius: 3px;
+  }
+
+  .msg.assistant .bubble {
+    background: var(--advisor-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 3px;
+  }
+
+  .typing-wrap { align-self: flex-start; }
+  .typing {
+    display: flex; gap: 5px; align-items: center;
+    padding: 12px 16px;
+    background: var(--advisor-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    border-bottom-left-radius: 3px;
+  }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-hint);
+    animation: pulse 1.3s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.18s; }
+  .dot:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes pulse { 0%,60%,100%{opacity:0.3;transform:scale(1)} 30%{opacity:1;transform:scale(1.2)} }
+
+  .summary-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 18px;
+    background: #EEF7EE;
+    border-top: 1px solid #C3E0C3;
+  }
+  .summary-bar.visible { display: flex; }
+  .summary-bar-text { font-size: 12px; color: #2D6A2D; display: flex; align-items: center; gap: 6px; }
+  .copy-btn {
+    font-size: 12px; font-family: 'DM Sans', sans-serif;
+    padding: 5px 13px;
+    border-radius: 8px;
+    border: 1px solid #2D6A2D;
+    background: white;
+    color: #2D6A2D;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .copy-btn:hover { background: #EEF7EE; }
+
+  .disclaimer {
+    font-size: 11px;
+    color: var(--text-hint);
+    text-align: center;
+    padding: 7px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    line-height: 1.5;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  textarea {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 13px;
+    min-height: 40px;
+    max-height: 110px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    overflow-y: auto;
+  }
+  textarea:focus { border-color: var(--navy-mid); }
+  textarea::placeholder { color: var(--text-hint); }
+
+  .send-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--navy);
+    color: var(--gold-light);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .send-btn:hover { background: var(--navy-mid); }
+  .send-btn:active { transform: scale(0.95); }
+  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .send-btn svg { width: 18px; height: 18px; }
+
+  .api-warning {
+    width: 100%; max-width: 680px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #FFF8E6;
+    border: 1px solid #F0D080;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #7A5A00;
+    display: none;
+  }
+  .api-warning.visible { display: block; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="rotary-badge">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="13" stroke="#C8973A" stroke-width="2"/>
+      <circle cx="16" cy="16" r="6" stroke="#C8973A" stroke-width="2"/>
+      <line x1="16" y1="3" x2="16" y2="10" stroke="#C8973A" stroke-width="2"/>
+      <line x1="16" y1="22" x2="16" y2="29" stroke="#C8973A" stroke-width="2"/>
+      <line x1="3" y1="16" x2="10" y2="16" stroke="#C8973A" stroke-width="2"/>
+      <line x1="22" y1="16" x2="29" y2="16" stroke="#C8973A" stroke-width="2"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <h1>Rotary District 5050 — Visa Advisor</h1>
+    <p>Personalized entry guidance for incoming exchange students</p>
+  </div>
+</div>
+
+<div class="chat-card">
+  <div class="chat-topbar">
+    <div class="status-dot"></div>
+    <div class="chat-topbar-text">
+      <div class="title">D5050 Exchange Student Visa Advisor</div>
+      <div class="sub">USA &amp; Canada — bi-national district</div>
+    </div>
+    <div class="flag-row">
+      <span class="flag">🇺🇸</span>
+      <span class="flag">🇨🇦</span>
+    </div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="summary-bar" id="summaryBar">
+    <span class="summary-bar-text">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      Your visa guidance summary is ready
+    </span>
+    <button class="copy-btn" id="copyBtn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      Copy summary
+    </button>
+  </div>
+
+  <div class="disclaimer">For guidance only. Always verify requirements with official embassy sources and your D5050 coordinator before applying.</div>
+
+  <div class="input-row">
+    <textarea id="userInput" placeholder="Type your message… / Escribe tu mensaje… / Écris ton message…" rows="1"></textarea>
+    <button class="send-btn" id="sendBtn" aria-label="Send message">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="api-warning" id="apiWarning">
+  <strong>API key required:</strong> Open this file in a text editor, find <code>YOUR_API_KEY_HERE</code> near the bottom, and replace it with your Anthropic API key.
+</div>
+
+<script>
+const API_KEY = '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';
+
+const SYSTEM_PROMPT = `You are a visa guidance assistant for Rotary Youth Exchange students coming to District 5050 (the Peace Arch District), a bi-national district spanning the USA (Washington State area) and Canada (British Columbia area).
+
+LANGUAGE RULE: Detect the language the student writes in during the conversation and respond entirely in that language for the rest of the conversation. If they write in Spanish, respond in Spanish. If French, respond in French. If Portuguese, respond in Portuguese. Etc.
+
+SCOPE RULE: You ONLY answer questions about visa and entry requirements for D5050 Rotary Youth Exchange students. If asked anything outside this scope, politely redirect them to contact their D5050 coordinator. Do not answer questions about packing, culture, school, host families, or anything unrelated to visas and entry documents.
+
+===================================================
+CRITICAL RULE — BI-NATIONAL REQUIREMENT:
+===================================================
+District 5050 is bi-national. ALL students — regardless of whether they are hosted in the USA or Canada — will travel across the border during their exchange year for district trips and activities.
+
+Therefore you MUST cover BOTH countries' entry requirements in every conversation, without exception:
+- Canadian-hosted students need: (1) Canadian Study Permit + (2) USA visitor entry (ESTA or B2 visa)
+- USA-hosted students need: (1) USA J-1 visa + (2) Canadian visitor entry (eTA or Temporary Resident Permit)
+
+NEVER close out a conversation without having covered BOTH countries. This is the most important reliability rule. Students who arrive without the visiting-country documents cannot get them easily once they are here.
+
+===================================================
+REQUIRED INTAKE — collect ALL before giving advice:
+===================================================
+Ask conversationally, one or two at a time. Do not give specific visa advice until you have ALL of the following:
+1. Student's country of citizenship (which passport they will travel on — note: some students have dual citizenship and can choose)
+2. Host country: USA or Canada
+3. Expected program start date (month and year)
+4. Student's age
+
+Once you have these four facts, you can give complete personalized guidance.
+
+===================================================
+PASSPORT NOTE:
+===================================================
+Some students have more than one passport. If a student mentions dual citizenship, remind them they can choose which passport to travel on, but whichever they choose must be valid for at least six months AFTER their exchange ends. Advise them to choose the passport that gives them the most favorable visa situation.
+
+===================================================
+VISA WAIVER COUNTRY LISTS:
+===================================================
+
+CANADA eTA-eligible countries (visa waiver — these students get eTA + Study Permit, NOT a TRV):
+Andorra, Australia, Austria, Bahamas, Barbados, Belgium, Brazil (*eTA eligible as of 2024 with valid US visa or prior Canadian visa), British National Overseas passport holders, Brunei, Bulgaria, Chile, Croatia, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Israel, Italy, Japan, Latvia, Liechtenstein, Lithuania, Luxembourg, Malta, Mexico, Monaco, Netherlands, New Zealand, Norway, Papua New Guinea, Poland, Portugal, Romania, Samoa, San Marino, Singapore, Slovakia, Slovenia, Solomon Islands, South Korea, Spain, Sweden, Switzerland, Taiwan, United Kingdom, United States.
+
+All other countries: require a Canadian Temporary Resident Visa (TRV) in addition to their study permit documents.
+
+USA ESTA-eligible countries (visa waiver program):
+Andorra, Australia, Austria, Belgium, Brunei, Chile, Croatia, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Japan, Latvia, Liechtenstein, Lithuania, Luxembourg, Malta, Monaco, Netherlands, New Zealand, Norway, Poland, Portugal, San Marino, Singapore, Slovakia, Slovenia, South Korea, Spain, Sweden, Switzerland, Taiwan, United Kingdom.
+
+All other countries: require a USA B2 visitor visa (for Canadian-hosted students visiting USA) or a J-1 visa (for USA-hosted students — see below).
+
+===================================================
+PATH A: CANADIAN-HOSTED STUDENTS
+===================================================
+
+STEP 1 — Canadian Study Permit (primary visa):
+
+Prerequisites — student cannot begin this process until they receive ALL of the following from their D5050 country officer:
+- D5050 Guarantee Form and Financial Support Letter
+- Custodial Declaration
+- School Letter
+
+Application portal: https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada.html
+
+Required documents for the application (all must be scanned PDFs, NOT photos):
+1. Custodial Declaration — D5050 sends page ONE (already notarized). The student's parents must complete page TWO. Parents' birth dates must be sent to the club YEO. Both pages must be notarized.
+2. School Letter — provided by the host school in Canada, sent to the student by D5050. Note: the Provincial Attestation Letter (PAL) is NOT required.
+3. Passport (proof of identity)
+4. Two passport-size photos with the student's name and birthdate printed on the back
+5. Proof of financial support — upload both the Guarantee Form and the Financial Support Letter (both provided by D5050)
+6. Letter of Explanation — student writes a short letter (sample provided by D5050)
+7. Medical Examination — most students will NOT need this; the consulate will notify the student if required
+
+After applying — students must check their Canadian IRCC portal regularly for updates.
+
+OUTCOME depends on passport country:
+- Visa waiver country students: Will receive a request to complete biometrics (fingerprints). Then receive a Letter of Introduction confirming they may study in Canada (this is NOT the study permit itself). Bring ALL IRCC documents when traveling. The actual Study Permit is issued upon arrival in Canada. Upload all documents to the Required Document tab.
+- Non-visa waiver country students: Must submit their passport and will receive a visa stamped in their passport before departure. Upload this document to the Required Document tab.
+
+STEP 2 — USA Entry (visiting country — CRITICAL, must be done BEFORE leaving home):
+
+Determine which applies based on passport country:
+
+Option A — ESTA (if passport country is on USA visa waiver list):
+- Apply at: https://esta.cbp.dhs.gov/
+- ESTA authorizes 90-day tourist entry (I-94). Because the exchange is ~10 months, the student will need to renew this multiple times during the year.
+- Important: it may be more practical to apply for a B2 multi-entry visa instead of using ESTA repeatedly.
+
+Option B — B2 Visitor Visa (if passport country is NOT on USA visa waiver list, OR if student prefers multi-entry):
+- Apply at: https://travel.state.gov/content/travel/en/us-visas/tourism-visit/visitor.html
+- Schedule interview at the nearest US Embassy or Consulate in their home country
+- If a USA contact address is required on the application, use:
+  Felicity Dye, Rotary Youth Services Chair
+  2815 Russell Street, Bellingham, Washington 98225
+  360-815-3199, fd@cf-voice.com
+
+===================================================
+PATH B: USA-HOSTED STUDENTS
+===================================================
+
+STEP 1 — USA J-1 Exchange Visitor Visa (primary visa):
+
+Prerequisites — student cannot begin this process until they receive ALL of the following from their D5050 country officer by email:
+- D5050 Guarantee Form
+- DS-2019 Form (Certificate of Eligibility for Exchange Visitor Status — issued by D5050's designated program sponsor)
+
+Note: ALL USA-hosted Rotary exchange students use the J-1 visa. There is no visa waiver for this — every student needs a J-1 regardless of passport country.
+
+Reference: https://j1visa.state.gov/programs/secondary-school-student/
+
+Required documents:
+1. D5050 Guarantee Form
+2. DS-2019 Form
+3. Passport photo
+4. Additional requirements may vary by US Embassy or Consulate — check: https://www.usembassy.gov/
+
+Application process:
+- Schedule a visa interview appointment at the US Embassy or Consulate in the student's home country
+- If multiple consulates exist in the country, check which city has the fastest appointment availability
+- IMPORTANT: Appointment slots can be very scarce. Students may need to check for available appointments EVERY DAY. If they cannot find an appointment in the needed timeframe, they must contact their D5050 coordinator immediately.
+- Attend the interview with DS-2019 and all required documents
+
+Outcome when approved:
+- A J-1 visa document will be glued into the student's passport
+- The student must also bring the stamped DS-2019 document when traveling to the USA — both documents are required
+
+STEP 2 — Canadian Entry (visiting country — CRITICAL, must be done BEFORE leaving home):
+
+Determine which applies based on passport country:
+
+Option A — eTA (if passport country is on Canada eTA-eligible list):
+- Apply at: https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/eta.html
+
+Option B — Canadian Temporary Resident Permit/Visitor Visa (if passport country is NOT on Canada eTA list):
+- Apply at: https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/
+- If a Canadian contact address is required on the application, use:
+  Andrea Stiller, D5050 Canadian Rotary Youth Exchange Program Coordinator
+  6715 School Lane, Chilliwack, British Columbia V2R 2C7
+  604-858-7773, rotary5050ye@gmail.com
+
+===================================================
+UNCERTAINTY AND DEFERRAL RULES:
+===================================================
+- If you are not certain whether a specific country is on a visa waiver list, say so explicitly and direct the student to check the official government website. Do not guess.
+- If a student's situation is unusual or complex (e.g. stateless, refugee travel document, special passport), defer to the D5050 coordinator immediately.
+- Always end your complete advice with: "Please verify these requirements directly with the official embassy or consulate website for your country, as requirements can change. Your D5050 coordinator is also available to help."
+- Do not state specific visa fees as exact figures — fees change. Instead, direct students to the relevant government website for current fee information.
+
+===================================================
+SUMMARY TRIGGER:
+===================================================
+When you have given complete advice covering both the primary visa AND the visiting country entry for the student's specific situation, end your final advice message with the exact token: [ADVICE_COMPLETE]
+
+Do not use this token until you have fully covered both countries.`;
+
+let conversationHistory = [];
+let adviceSummary = null;
+let isWaiting = false;
+
+function addMessage(role, text) {
+  const msgs = document.getElementById('messages');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg ' + role;
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = role === 'user' ? 'You' : 'Visa Advisor';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  wrapper.appendChild(label);
+  wrapper.appendChild(bubble);
+  msgs.appendChild(wrapper);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const t = document.createElement('div');
+  t.id = 'typing';
+  t.className = 'typing-wrap';
+  t.innerHTML = '<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  msgs.appendChild(t);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMessage(userText) {
+  if (!userText.trim() || isWaiting) return;
+  if (API_KEY === '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') {
+    document.getElementById('apiWarning').classList.add('visible');
+    return;
+  }
+  isWaiting = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('userInput').value = '';
+  document.getElementById('userInput').style.height = 'auto';
+
+  addMessage('user', userText);
+  conversationHistory.push({ role: 'user', content: userText });
+  showTyping();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-request-bypass': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: conversationHistory
+      })
+    });
+
+    const data = await response.json();
+    removeTyping();
+
+    let replyText = data.content?.[0]?.text || 'Sorry, I could not get a response. Please try again.';
+    const isComplete = replyText.includes('[ADVICE_COMPLETE]');
+    replyText = replyText.replace('[ADVICE_COMPLETE]', '').trim();
+
+    addMessage('assistant', replyText);
+    conversationHistory.push({ role: 'assistant', content: replyText });
+
+    if (isComplete) {
+      adviceSummary = buildSummary(replyText);
+      document.getElementById('summaryBar').classList.add('visible');
+    }
+  } catch (err) {
+    removeTyping();
+    addMessage('assistant', 'Connection error — please check your internet connection and try again.');
+  }
+
+  isWaiting = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function buildSummary(lastAdvice) {
+  let text = 'ROTARY DISTRICT 5050 — VISA GUIDANCE SUMMARY\n';
+  text += '==============================================\n';
+  text += 'Date: ' + new Date().toLocaleDateString('en-CA') + '\n\n';
+  text += lastAdvice + '\n\n';
+  text += '----------------------------------------------\n';
+  text += 'IMPORTANT REMINDERS:\n';
+  text += '- Verify all requirements at the official embassy website for your country.\n';
+  text += '- Both your PRIMARY visa AND your VISITING-COUNTRY entry document\n';
+  text += '  must be obtained BEFORE you leave home. They cannot be obtained after arrival.\n';
+  text += '- Contact your D5050 coordinator if you have any questions:\n';
+  text += '  Canada: Andrea Stiller — rotary5050ye@gmail.com\n';
+  text += '  USA: Felicity Dye — fd@cf-voice.com\n\n';
+  text += 'This summary is for guidance only and does not constitute legal advice.\n';
+  return text;
+}
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  if (!adviceSummary) return;
+  navigator.clipboard.writeText(adviceSummary).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy summary';
+    }, 2000);
+  });
+});
+
+const ta = document.getElementById('userInput');
+ta.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(ta.value); }
+});
+document.getElementById('sendBtn').addEventListener('click', () => sendMessage(ta.value));
+ta.addEventListener('input', () => {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 110) + 'px';
+});
+
+async function initChat() {
+  if (API_KEY === 'YOUR_API_KEY_HERE') {
+    document.getElementById('apiWarning').classList.add('visible');
+    const fallback = 'Hello! I\'m your Rotary District 5050 Visa Advisor.\n\nNote: An API key is needed to activate me. Please see the warning below.\n\nOnce configured, I\'ll help you understand exactly what visa and entry documents you need before your exchange year begins — in your own language.';
+    addMessage('assistant', fallback);
+    return;
+  }
+
+  showTyping();
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-request-bypass': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: 'Hello' }]
+      })
+    });
+    const data = await response.json();
+    removeTyping();
+    const text = data.content?.[0]?.text || 'Hello! I\'m here to help with your visa questions.';
+    addMessage('assistant', text);
+    conversationHistory.push({ role: 'user', content: 'Hello' });
+    conversationHistory.push({ role: 'assistant', content: text });
+  } catch {
+    removeTyping();
+    const fallback = 'Hello! I\'m your Rotary District 5050 Visa Advisor. I\'m here to help you understand what visa and entry documents you need before your exchange year begins.\n\nTo get started, could you tell me which country you are from (which passport will you travel on)?';
+    addMessage('assistant', fallback);
+    conversationHistory.push({ role: 'user', content: 'Hello' });
+    conversationHistory.push({ role: 'assistant', content: fallback });
+  }
+}
+
+initChat();
+</script>
+</body>
+</html>
