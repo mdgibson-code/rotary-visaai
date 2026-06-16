@@ -318,10 +318,6 @@
   </div>
 </div>
 
-<div class="api-warning" id="apiWarning">
-  <strong>API key required:</strong> Open this file in a text editor, find <code>YOUR_API_KEY_HERE</code> near the bottom, and replace it with your Anthropic API key.
-</div>
-
 <script>
 
 const SYSTEM_PROMPT = `You are a visa guidance assistant for Rotary Youth Exchange students coming to District 5050 (the Peace Arch District), a bi-national district spanning the USA (Washington State area) and Canada (British Columbia area).
@@ -512,10 +508,6 @@ function removeTyping() {
 
 async function sendMessage(userText) {
   if (!userText.trim() || isWaiting) return;
-  if (API_KEY === 'YOUR_API_KEY_HERE') {
-    document.getElementById('apiWarning').classList.add('visible');
-    return;
-  }
   isWaiting = true;
   document.getElementById('sendBtn').disabled = true;
   document.getElementById('userInput').value = '';
@@ -601,13 +593,6 @@ ta.addEventListener('input', () => {
 });
 
 async function initChat() {
-  if (API_KEY === 'YOUR_API_KEY_HERE') {
-    document.getElementById('apiWarning').classList.add('visible');
-    const fallback = 'Hello! I\'m your Rotary District 5050 Visa Advisor.\n\nNote: An API key is needed to activate me. Please see the warning below.\n\nOnce configured, I\'ll help you understand exactly what visa and entry documents you need before your exchange year begins — in your own language.';
-    addMessage('assistant', fallback);
-    return;
-  }
-
   showTyping();
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
