@@ -524,7 +524,7 @@ async function sendMessage(userText) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1000,
         system: SYSTEM_PROMPT,
         messages: conversationHistory
@@ -602,7 +602,7 @@ async function initChat() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1000,
         system: SYSTEM_PROMPT,
              messages: [{ role: 'user', content: 'Hello, I am a new Rotary exchange student and I need help understanding what visa documents I need.' }]
