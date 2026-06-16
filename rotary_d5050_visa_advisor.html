@@ -323,7 +323,6 @@
 </div>
 
 <script>
-const API_KEY = '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';
 
 const SYSTEM_PROMPT = `You are a visa guidance assistant for Rotary Youth Exchange students coming to District 5050 (the Peace Arch District), a bi-national district spanning the USA (Washington State area) and Canada (British Columbia area).
 
@@ -527,13 +526,10 @@ async function sendMessage(userText) {
   showTyping();
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://aged-sound-0941.gentle-dust-5952.workers.dev', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-request-bypass': 'true'
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
