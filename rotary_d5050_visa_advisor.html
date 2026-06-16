@@ -476,7 +476,19 @@ let conversationHistory = [];
 let adviceSummary = null;
 let isWaiting = false;
 
-function addMessage(role, text) {
+ function parseMarkdown(text) {
+   return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^### (.+)$/gm, '<strong>$1</strong>')
+    .replace(/^## (.+)$/gm, '<strong>$1</strong>')
+    .replace(/^- (.+)$/gm, '• $1')
+    .replace(/\n/g, '<br>');
+}
+ function addMessage(role, text) {
   const msgs = document.getElementById('messages');
   const wrapper = document.createElement('div');
   wrapper.className = 'msg ' + role;
@@ -485,7 +497,7 @@ function addMessage(role, text) {
   label.textContent = role === 'user' ? 'You' : 'Visa Advisor';
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-  bubble.textContent = text;
+  bubble.innerHTML = parseMarkdown(text);
   wrapper.appendChild(label);
   wrapper.appendChild(bubble);
   msgs.appendChild(wrapper);
