@@ -532,6 +532,7 @@ async function sendMessage(userText) {
     });
 
     const data = await response.json();
+    console.log('API response:', JSON.stringify(data));
     removeTyping();
 
     let replyText = data.content?.[0]?.text || 'Sorry, I could not get a response. Please try again.';
